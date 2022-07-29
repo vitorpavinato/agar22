@@ -396,11 +396,12 @@ is the slurm script that generated the output above.
 \subsection{Organizing the data directory}
 For each set of site pattern data, I create a directory tree with the
 same format, which is illustrated in the github repository at
-\href{https://github.com/alanrogers/agar22/tree/main/legofit/europe}{legofit/europe}. Within
+\href{https://github.com/alanrogers/agar22/blob/main/legofit/europe}{legofit/europe}. Within
 this directory, you'll find (1)~a README.md file, which describes all
 the others, (2)~a file called ``data.opf,'' which contains observed
-site pattern frequencies, (3)~\href{sitepat.slr.html}{sitepat.slr}, a
-slurm script that runs ``sitepat'' and generates ``data.opf,'' and
+site pattern frequencies,
+(3)~\href{https://alanrogers.github.io/agar22/legofit/sitepat.slr.html}{sitepat.slr},
+a slurm script that runs ``sitepat'' and generates ``data.opf,'' and
 ``boot,'' a directory containing bootstrap replicates.  There will
 eventually be other files with names like ``all.bootci'' and
 ``all.bma,'' which contain the results of analyses.  Within this
@@ -418,13 +419,25 @@ history are described in file ``a.lgo.''  These assumptions are
 described using syntax that you can read about
 \href{http://alanrogers.github.io/legofit/html/index.html#lgo}{here}.
 Use \texttt{cd} to move into directory ``a,'' and have a look at
-\href{https://github.com/alanrogers/agar22/tree/main/legofit/europe/a/a.lgo}{a.lgo}. Then
-type this at the bash command line:
+\href{https://github.com/alanrogers/blob/main/agar22/legofit/europe/a/a.lgo}{a.lgo},
+which describes the model illustrated in Fig.~\ref{fig.network}
+
+\begin{figure}
+  {\centering\includegraphics{network.pdf}\\}
+  \caption{Model of history described in file ``a/a.lgo.'' Squares
+    represent segments from which we have data. Solid arrows indicate
+    ancestor-descendant relationships, and dashed arrows represent
+    gene flow. Vertical axis is not to scale.}
+  \label{fig.network}
+\end{figure}
+
+We can use this file to calculate the expected frequency of each site
+patter. Type:
 \begin{verbatim}
 legosim a.lgo
 \end{verbatim}
 This runs the program ``legosim,'' which reads file
-\href{https://github.com/alanrogers/agar22/tree/main/legofit/europe/a/a.lgo}{a.lgo},
+\href{https://github.com/alanrogers/agar22/blob/main/legofit/europe/a/a.lgo}{a.lgo},
 estimates the probability of each site pattern, and prints out the
 result. By default, legosim doesn't calculate probabilities for
 singleton site patterns (those in which the derived allele is present
@@ -778,17 +791,8 @@ Use ssh as described above to log into one of the CHPC clusters, and
 then \texttt{cd} into directory
 \texttt{agar22/legofit/europe/a}. You'll find several slurm scripts
 there, whose names all end with \texttt{.slr}. There is also a shell
-script called ``pipeline.sh,'' which runs the entire pipeline.  To
-experiment with this pipeline, let's copy these scripts into a
-temporary directory. From within this directory, type
-\begin{verbatim}
-mkdir ../tmp          # make a temporary directory
-cp a.lgo ../tmp       # copy .lgo file into tmp
-cp *.slr ../tmp       # copy slurm scripts into tmp
-cp pipeline.sh ../tmp # copy pipeline script
-cd ../tmp             # move into that directory
-\end{verbatim}
-Your \texttt{tmp} directory should now contain the following files:
+script called ``pipeline.sh,'' which runs the entire pipeline. The
+pipeline comprises the following files:
 \begin{leftindent}
   \begin{tabbing}
 \verb|pipeline.sh|XX\=\kill
@@ -805,14 +809,8 @@ Your \texttt{tmp} directory should now contain the following files:
 \verb|pipeline.sh| \> runs all the slurm scripts
 \end{tabbing}
 \end{leftindent}
-To speed things up, we can reduce the number of iterations (as
-explained above) by typing
-\begin{verbatim}
-sed -i "" 's/5000/100/g' *.slr 
-\end{verbatim}
-Now each legofit job will do only 100 DE iterations. The results won't
-be as precise, but the pipeline will be fast. To run the first stage
-of analysis on the real data, enter the following command
+To run the first stage of analysis on the real data, enter the
+following command
 \begin{verbatim}
 sbatch -A rogersa -p <your cluster> a1.slr
 \end{verbatim}
@@ -846,33 +844,6 @@ then save the file and exit the editor. Finally, type
 . pipeline.sh
 \end{verbatim}
 This will queue the entire pipeline for execution.
-
-When the pipeline finishes, you'll want to copy the results back to
-your own machine for analysis. One way to do this uses the
-``rsync'' command, which you may need to install on your machine by
-typing
-\begin{verbatim}
-brew install rsync
-\end{verbatim}
-Then, to get the results of the slurm pipeline, type this from your
-own computer:
-\begin{verbatim}
-rsync -Cavzbu <your_unid>@notchpeak.chpc.utah.edu:agar22/legofit/europe/tmp .
-\end{verbatim}
-This assumes that the results you want are on the CHPC server in a
-directory called \url{~/agar22/legofit/europe/tmp}. It will create on
-your own machine a directory called ``tmp'' in the directory from
-which you issued the rsync command. That directory should now contain
-all the results from the slurm pipeline.
-
-Incidentally, rsync is a fairly awkward tool for copying things back
-and forth between the CHPC server and your own machine. I usually do
-this by setting up a repository on github, which I can access both
-from the CHPC and from my home machine. To transfer from CHPC to home,
-I do \texttt{git push} from the CHPC and then \texttt{git pull} from
-home. I'm not teaching you how to do this here, because this tutorial
-is complicated enough already. I'm teaching the rsync approach
-instead, because it's simpler.
 
 \section{Model selection, model averaging, and confidence intervals}
 \label{sec.msma}
@@ -912,7 +883,7 @@ lines of output look like this
 #
 # Program was compiled: Mar 22 2022 17:40:38
 # Program was run: Sat Jul  9 13:41:24 2022
-# curr dir: /Users/rogers/txt/agar22/legofit/europe/tmp
+# curr dir: /Users/rogers/txt/agar22/legofit/europe/a
 #
 #          bepe        DataFile     LegofitFile
 1.130271806e-06        data.opf      b2.legofit
@@ -943,15 +914,7 @@ a file named \texttt{b2.flat}, which was calculated like this:
 \begin{verbatim}
 flatfile.py b2.legofit b2boot*.legofit > b2.flat
 \end{verbatim}
-The \texttt{legofit/europe} directory may also contain a subdirectory
-called \texttt{tmp}, which you created for the exercises above. If so,
-delete that directory or move it out of the way. For example, to move
-it to your home directory, you could \texttt{cd} into the
-\texttt{legofit/europe} directory and type
-\begin{verbatim}
-mv tmp ~
-\end{verbatim}
-Then, from the \texttt{legofit/europe} directory, type
+From the \texttt{legofit/europe} directory, type
 \begin{verbatim}
 booma */b2.bepe -F */b2.flat > all.bma
 \end{verbatim}
